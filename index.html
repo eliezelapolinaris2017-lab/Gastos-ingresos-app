@@ -1,0 +1,367 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Oasis Gastos / Ingresos</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <div class="brandLogo">OA</div>
+      <div class="brandText">
+        <div class="brandTitle">Oasis Gastos / Ingresos</div>
+        <div class="brandSub">Transacciones · Categorías · Reportes · 2026</div>
+      </div>
+    </div>
+
+    <nav class="tabs" id="tabs">
+      <button class="tab is-active" data-view="dashboard" type="button">Dashboard</button>
+      <button class="tab" data-view="transactions" type="button">Transacciones</button>
+      <button class="tab" data-view="categories" type="button">Categorías</button>
+      <button class="tab" data-view="recurring" type="button">Recurrentes</button>
+      <button class="tab" data-view="data" type="button">Datos</button>
+    </nav>
+
+    <div class="topActions">
+      <button class="btn ghost" id="btnQuickAdd" type="button">Nuevo</button>
+      <button class="btn" id="btnSaveTx" type="button">Guardar</button>
+    </div>
+  </header>
+
+  <main class="wrap">
+
+    <!-- KPI -->
+    <section class="kpiGrid">
+      <article class="kpiCard kpi-a">
+        <div class="kpiLabel">Ingresos</div>
+        <div class="kpiValue" id="kpiIncome">$0.00</div>
+        <div class="kpiHint">Periodo</div>
+      </article>
+
+      <article class="kpiCard kpi-b">
+        <div class="kpiLabel">Gastos</div>
+        <div class="kpiValue" id="kpiExpense">$0.00</div>
+        <div class="kpiHint">Periodo</div>
+      </article>
+
+      <article class="kpiCard kpi-c">
+        <div class="kpiLabel">Net</div>
+        <div class="kpiValue" id="kpiNet">$0.00</div>
+        <div class="kpiHint">Ingresos - Gastos</div>
+      </article>
+    </section>
+
+    <!-- DASHBOARD -->
+    <section class="view is-active" id="view-dashboard">
+      <section class="card section">
+        <div class="sectionHead">
+          <div>
+            <div class="h1">Dashboard</div>
+            <div class="muted">Vista ejecutiva: cashflow, top categorías y tendencias del periodo.</div>
+          </div>
+          <div class="pill" id="dashPill">Listo</div>
+        </div>
+
+        <div class="grid2">
+          <div class="field">
+            <label>Periodo (desde)</label>
+            <input class="input" id="pFrom" type="date" />
+          </div>
+          <div class="field">
+            <label>Periodo (hasta)</label>
+            <input class="input" id="pTo" type="date" />
+          </div>
+        </div>
+
+        <div class="dashGrid" id="dashGrid"></div>
+        <div class="hint">Tip: guarda recibos en transacciones para auditoría rápida.</div>
+      </section>
+    </section>
+
+    <!-- TRANSACTIONS -->
+    <section class="view" id="view-transactions">
+
+      <section class="card section">
+        <div class="sectionHead">
+          <div>
+            <div class="h1">Transacción</div>
+            <div class="muted">Ingreso o gasto con detalle: categoría, método, terceros y recibo.</div>
+          </div>
+          <div class="pill" id="txMode">Nuevo</div>
+        </div>
+
+        <div class="grid3">
+          <div class="field">
+            <label>Tipo</label>
+            <select class="input" id="txType">
+              <option value="INCOME">Ingreso</option>
+              <option value="EXPENSE">Gasto</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label>Fecha</label>
+            <input class="input" id="txDate" type="date" />
+          </div>
+
+          <div class="field">
+            <label>Monto</label>
+            <input class="input" id="txAmount" type="number" step="0.01" placeholder="0.00" />
+          </div>
+        </div>
+
+        <div class="grid3">
+          <div class="field">
+            <label>Categoría</label>
+            <select class="input" id="txCategory"></select>
+          </div>
+
+          <div class="field">
+            <label>Método de pago</label>
+            <select class="input" id="txMethod">
+              <option value="EFECTIVO">Efectivo</option>
+              <option value="ATH">ATH / ATH Móvil</option>
+              <option value="TARJETA">Tarjeta</option>
+              <option value="TRANSFERENCIA">Transferencia</option>
+              <option value="CHEQUE">Cheque</option>
+              <option value="OTRO">Otro</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label>Estado</label>
+            <select class="input" id="txStatus">
+              <option value="PAGADO">Pagado</option>
+              <option value="PENDIENTE">Pendiente</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="grid2">
+          <div class="field">
+            <label>Cliente / Proveedor</label>
+            <input class="input" id="txParty" placeholder="Nombre (opcional)" />
+          </div>
+          <div class="field">
+            <label>Referencia</label>
+            <input class="input" id="txRef" placeholder="Factura # / Recibo # / Nota" />
+          </div>
+          <div class="field">
+            <label>Tags</label>
+            <input class="input" id="txTags" placeholder="Ej: mantenimiento, emergencia, proyecto" />
+          </div>
+          <div class="field">
+            <label>Recibo (archivo)</label>
+            <input class="input" id="txReceipt" type="file" />
+            <div class="hint">Se guarda local (base64). No sube a ningún servidor.</div>
+          </div>
+        </div>
+
+        <div class="grid2">
+          <div class="field">
+            <label>Notas</label>
+            <textarea class="input" id="txNotes" rows="3" placeholder="Notas internas..."></textarea>
+          </div>
+          <div class="field">
+            <label>Vista del recibo</label>
+            <div class="receiptBox">
+              <div class="receiptMeta" id="receiptMeta">Sin recibo</div>
+              <img id="receiptImg" alt="Recibo" />
+            </div>
+          </div>
+        </div>
+
+        <div class="rowBtns" style="margin-top:12px">
+          <button class="btn ghost" id="btnDuplicate" type="button">Duplicar</button>
+          <button class="btn danger" id="btnDeleteTx" type="button">Borrar</button>
+        </div>
+      </section>
+
+      <section class="card section">
+        <div class="sectionHead">
+          <div>
+            <div class="h1">Historial</div>
+            <div class="muted">Filtro por tipo, estado, categoría, método, tercero, texto y fechas.</div>
+          </div>
+        </div>
+
+        <div class="filters">
+          <input class="input small" id="fText" placeholder="Buscar (ref, party, notas, tags)" />
+          <select class="input small" id="fType">
+            <option value="">Tipo (Todos)</option>
+            <option value="INCOME">Ingresos</option>
+            <option value="EXPENSE">Gastos</option>
+          </select>
+          <select class="input small" id="fStatus">
+            <option value="">Estado (Todos)</option>
+            <option value="PAGADO">Pagado</option>
+            <option value="PENDIENTE">Pendiente</option>
+          </select>
+          <select class="input small" id="fCategory"></select>
+          <select class="input small" id="fMethod">
+            <option value="">Método (Todos)</option>
+            <option value="EFECTIVO">Efectivo</option>
+            <option value="ATH">ATH / ATH Móvil</option>
+            <option value="TARJETA">Tarjeta</option>
+            <option value="TRANSFERENCIA">Transferencia</option>
+            <option value="CHEQUE">Cheque</option>
+            <option value="OTRO">Otro</option>
+          </select>
+          <input class="input small" id="fFrom" type="date" />
+          <input class="input small" id="fTo" type="date" />
+          <button class="btn ghost" id="btnClearFilters" type="button">Limpiar</button>
+        </div>
+
+        <div class="tableWrap">
+          <table class="histTable">
+            <thead>
+              <tr>
+                <th>Fecha</th><th>Tipo</th><th>Categoría</th><th>Método</th><th>Party</th><th>Estado</th><th>Monto</th><th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody id="txBody"></tbody>
+          </table>
+        </div>
+      </section>
+
+    </section>
+
+    <!-- CATEGORIES -->
+    <section class="view" id="view-categories">
+      <section class="card section">
+        <div class="sectionHead">
+          <div>
+            <div class="h1">Categorías</div>
+            <div class="muted">Personaliza tu mapa financiero por operación real.</div>
+          </div>
+          <div class="rowBtns">
+            <button class="btn ghost" id="btnSeedCats" type="button">Plantilla</button>
+            <button class="btn danger" id="btnClearCats" type="button">Vaciar</button>
+          </div>
+        </div>
+
+        <div class="grid3">
+          <div class="field">
+            <label>Nombre</label>
+            <input class="input" id="catName" placeholder="Ej: Combustible" />
+          </div>
+          <div class="field">
+            <label>Tipo</label>
+            <select class="input" id="catType">
+              <option value="EXPENSE">Gasto</option>
+              <option value="INCOME">Ingreso</option>
+              <option value="BOTH">Ambos</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Color</label>
+            <input class="input" id="catColor" type="color" value="#22d3ee" />
+          </div>
+        </div>
+
+        <div class="rowBtns" style="margin-top:12px">
+          <button class="btn" id="btnAddCat" type="button">Guardar categoría</button>
+        </div>
+
+        <div class="tableWrap" style="margin-top:12px">
+          <table class="histTable">
+            <thead><tr><th>Nombre</th><th>Tipo</th><th>Color</th><th>Acciones</th></tr></thead>
+            <tbody id="catBody"></tbody>
+          </table>
+        </div>
+      </section>
+    </section>
+
+    <!-- RECURRING -->
+    <section class="view" id="view-recurring">
+      <section class="card section">
+        <div class="sectionHead">
+          <div>
+            <div class="h1">Recurrentes</div>
+            <div class="muted">Reglas mensuales para gastos fijos o ingresos repetitivos (sin olvidar nada).</div>
+          </div>
+        </div>
+
+        <div class="grid3">
+          <div class="field">
+            <label>Tipo</label>
+            <select class="input" id="rType">
+              <option value="EXPENSE">Gasto</option>
+              <option value="INCOME">Ingreso</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label>Categoría</label>
+            <select class="input" id="rCategory"></select>
+          </div>
+
+          <div class="field">
+            <label>Monto</label>
+            <input class="input" id="rAmount" type="number" step="0.01" placeholder="0.00" />
+          </div>
+        </div>
+
+        <div class="grid3">
+          <div class="field">
+            <label>Día del mes</label>
+            <input class="input" id="rDay" type="number" min="1" max="28" value="1" />
+            <div class="hint">Recomendado 1-28 para evitar meses cortos.</div>
+          </div>
+
+          <div class="field">
+            <label>Party</label>
+            <input class="input" id="rParty" placeholder="Cliente / Proveedor (opcional)" />
+          </div>
+
+          <div class="field">
+            <label>Nota</label>
+            <input class="input" id="rMemo" placeholder="Ej: Renta / Internet / Plan" />
+          </div>
+        </div>
+
+        <div class="rowBtns" style="margin-top:12px">
+          <button class="btn" id="btnAddRecurring" type="button">Guardar recurrente</button>
+          <button class="btn ghost" id="btnRunRecurring" type="button">Generar este mes</button>
+          <button class="btn danger" id="btnClearRecurring" type="button">Vaciar</button>
+        </div>
+
+        <div class="tableWrap" style="margin-top:12px">
+          <table class="histTable">
+            <thead><tr><th>Tipo</th><th>Categoría</th><th>Día</th><th>Monto</th><th>Party</th><th>Nota</th><th>Acciones</th></tr></thead>
+            <tbody id="recBody"></tbody>
+          </table>
+        </div>
+      </section>
+    </section>
+
+    <!-- DATA -->
+    <section class="view" id="view-data">
+      <section class="card section">
+        <div class="sectionHead">
+          <div>
+            <div class="h1">Datos</div>
+            <div class="muted">Export/Import para backup y transferencia entre dispositivos.</div>
+          </div>
+          <div class="rowBtns">
+            <button class="btn ghost" id="btnExport" type="button">Export</button>
+            <button class="btn ghost" id="btnImport" type="button">Import</button>
+            <input id="importFile" type="file" accept="application/json" hidden />
+            <button class="btn danger" id="btnReset" type="button">Reset</button>
+          </div>
+        </div>
+        <div class="hint">Export guarda categorías + transacciones + recurrentes. Import reemplaza la data actual.</div>
+      </section>
+    </section>
+
+  </main>
+
+  <!-- HUB -->
+  <a class="hubFab" id="hubBtn" href="#" title="Volver a Oasis Hub" aria-label="Volver a Oasis Hub">⟵ Hub</a>
+
+  <script src="app.js"></script>
+</body>
+</html>
