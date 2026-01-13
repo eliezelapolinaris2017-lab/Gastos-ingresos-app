@@ -210,3 +210,15 @@ body{
   transition:transform .12s ease, border-color .12s ease;
 }
 .hubFab:hover{border-color:rgba(214,177,90,.70);transform:translateY(-1px)}
+
+/* Backup KPI clickable */
+.kpi-click{ cursor:pointer; }
+.kpi-click:focus{ outline:2px solid rgba(214,177,90,.65); outline-offset:3px; }
+
+.kpi-d{
+  background:radial-gradient(700px 220px at 20% 0%, rgba(214,177,90,.22), transparent 55%), rgba(255,255,255,.06);
+  border-color:rgba(214,177,90,.28);
+}
+#kpiBackup[data-due="true"]{
+  border-color:rgba(239,68,68,.55);
+}
