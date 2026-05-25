@@ -3,147 +3,186 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
-  <title>Oasis Cashflow Sync</title>
+  <meta name="theme-color" content="#07111f" />
+  <title>Nexus Finance Live</title>
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
-  <div class="appShell">
-    <aside class="sidebar">
-      <a class="hubLink" id="hubBtn" href="#">← Hub</a>
-      <div class="brandBlock">
-        <div class="brandMark">OA</div>
-        <div>
-          <h1>Oasis Cashflow</h1>
-          <p>CRM Sync · Finanzas rápidas</p>
-        </div>
+  <aside class="sidebar">
+    <div class="brandBlock">
+      <div class="logoShell"><img id="appLogo" alt="Nexus Logo" /></div>
+      <div>
+        <div class="brandTitle" id="brandTitle">Nexus Finance Live</div>
+        <div class="brandSub" id="brandSub">Oasis Operations</div>
       </div>
+    </div>
 
-      <div class="syncCard" id="syncCard">
-        <span class="syncDot" id="syncDot"></span>
-        <div>
-          <strong id="authPill">Offline</strong>
-          <small id="syncPill">Local activo</small>
-        </div>
+    <nav class="nav" id="tabs">
+      <button class="navBtn is-active" data-view="dashboard" type="button">Dashboard</button>
+      <button class="navBtn" data-view="entry" type="button">Entrada rápida</button>
+      <button class="navBtn" data-view="history" type="button">Historial</button>
+      <button class="navBtn" data-view="setup" type="button">Configuración</button>
+    </nav>
+
+    <div class="cloudBox">
+      <div class="cloudDot" id="cloudDot"></div>
+      <div>
+        <div class="cloudLabel" id="authPill">Offline</div>
+        <div class="cloudSub" id="syncPill">Sync local</div>
       </div>
+    </div>
 
-      <nav class="nav" id="tabs">
-        <button class="navBtn is-active" data-view="dashboard" type="button">Panel</button>
-        <button class="navBtn" data-view="transactions" type="button">Movimiento</button>
-        <button class="navBtn" data-view="history" type="button">Historial</button>
-        <button class="navBtn" data-view="settings" type="button">Ajustes</button>
-      </nav>
+    <div class="sideActions">
+      <button class="btn full" id="btnLogin" type="button">Conectar Google</button>
+      <button class="btn ghost full" id="btnLogout" type="button" hidden>Salir</button>
+      <a class="btn ghost full linkBtn" id="hubBtn" href="#">← Hub</a>
+    </div>
+  </aside>
 
-      <div class="sideActions">
-        <button class="btn primary" id="btnLogin" type="button">Conectar Google</button>
-        <button class="btn ghost" id="btnLogout" type="button" style="display:none">Salir</button>
-        <button class="btn ghost" id="btnExport" type="button">Backup</button>
+  <main class="app">
+    <header class="mobileTop">
+      <div class="brandMini"><img id="appLogoMobile" alt="Nexus" /><strong>Nexus Finance</strong></div>
+      <button class="btn small" id="btnQuickOpen" type="button">Nuevo</button>
+    </header>
+
+    <section class="hero card">
+      <div>
+        <div class="eyebrow">Control financiero operativo</div>
+        <h1 id="heroTitle">Gastos, ingresos y caja bajo control.</h1>
+        <p id="heroSub">Menos clics. Más control. Sync vivo cuando estás conectado.</p>
       </div>
-    </aside>
+      <div class="heroActions">
+        <button class="btn primary" id="btnNewIncome" type="button">+ Ingreso</button>
+        <button class="btn dangerSoft" id="btnNewExpense" type="button">+ Gasto</button>
+        <button class="btn ghost" id="btnCalc" type="button">Calculadora</button>
+      </div>
+    </section>
 
-    <main class="main">
-      <section class="hero">
-        <div>
-          <p class="eyebrow">Operación diaria</p>
-          <h2>Ingresos, gastos y balance sin enredos.</h2>
-          <p class="heroSub">Sync automático, entrada rápida y calculadora integrada. Menos pantalla, más control.</p>
-        </div>
-        <div class="heroActions">
-          <button class="btn primary" id="btnQuickAdd" type="button">Nuevo movimiento</button>
-          <button class="btn" id="btnSaveTx" type="button">Guardar</button>
-        </div>
-      </section>
+    <section class="kpis">
+      <article class="kpi card good"><span>Ingresos</span><strong id="kpiIncome">$0.00</strong><small>Periodo activo</small></article>
+      <article class="kpi card bad"><span>Gastos</span><strong id="kpiExpense">$0.00</strong><small>Periodo activo</small></article>
+      <article class="kpi card blue"><span>Balance</span><strong id="kpiNet">$0.00</strong><small>Ingresos - gastos</small></article>
+      <article class="kpi card gold" id="backupCard"><span>Backup</span><strong id="kpiBackupValue">—</strong><small id="kpiBackupSub">Toca para exportar</small></article>
+    </section>
 
-      <section class="kpiGrid">
-        <article class="kpi income"><span>Ingresos</span><strong id="kpiIncome">$0.00</strong><small>Periodo</small></article>
-        <article class="kpi expense"><span>Gastos</span><strong id="kpiExpense">$0.00</strong><small>Periodo</small></article>
-        <article class="kpi net"><span>Balance</span><strong id="kpiNet">$0.00</strong><small>Ingresos - Gastos</small></article>
-        <article class="kpi backup" id="kpiBackup" role="button" tabindex="0"><span>Backup</span><strong id="kpiBackupValue">—</strong><small id="kpiBackupSub">Toca para exportar</small></article>
-      </section>
-
-      <section class="view is-active" id="view-dashboard">
-        <div class="contentGrid">
-          <section class="panel quickPanel">
-            <div class="panelHead"><div><h3>Entrada rápida</h3><p>Lo que se usa todos los días, al frente.</p></div><span class="statusTag" id="txMode">Nuevo</span></div>
-            <div class="segmented" id="quickType">
-              <button class="segBtn is-active" data-type="INCOME" type="button">Ingreso</button>
-              <button class="segBtn" data-type="EXPENSE" type="button">Gasto</button>
-            </div>
-            <div class="formGrid">
-              <label>Monto<input class="input big" id="txAmount" type="number" step="0.01" placeholder="0.00" /></label>
-              <label>Fecha<input class="input" id="txDate" type="date" /></label>
-              <label>Categoría<select class="input" id="txCategory"></select></label>
-              <label>Método<select class="input" id="txMethod"><option value="EFECTIVO">Efectivo</option><option value="ATH">ATH / ATH Móvil</option><option value="TARJETA">Tarjeta</option><option value="TRANSFERENCIA">Transferencia</option><option value="CHEQUE">Cheque</option><option value="OTRO">Otro</option></select></label>
-              <label>Cliente / Proveedor<input class="input" id="txParty" placeholder="Nombre" /></label>
-              <label>Estado<select class="input" id="txStatus"><option value="PAGADO">Pagado</option><option value="PENDIENTE">Pendiente</option></select></label>
-              <label class="wide">Nota / referencia<input class="input" id="txRef" placeholder="Factura, recibo o comentario" /></label>
-            </div>
-            <input id="txTags" hidden />
-            <textarea id="txNotes" hidden></textarea>
-            <input id="txReceipt" type="file" hidden />
-            <div class="actionRow"><button class="btn primary" id="btnSaveInline" type="button">Guardar movimiento</button><button class="btn ghost" id="btnDuplicate" type="button">Duplicar</button><button class="btn danger" id="btnDeleteTx" type="button">Borrar</button></div>
-          </section>
-
-          <section class="panel calculatorPanel">
-            <div class="panelHead"><div><h3>Calculadora</h3><p>Divide, resta, suma y aplica rápido al monto.</p></div></div>
-            <input class="calcDisplay" id="calcDisplay" placeholder="Ej: 250/2-25" inputmode="decimal" />
-            <div class="calcKeys" id="calcKeys">
-              <button>7</button><button>8</button><button>9</button><button>÷</button>
-              <button>4</button><button>5</button><button>6</button><button>×</button>
-              <button>1</button><button>2</button><button>3</button><button>-</button>
-              <button>0</button><button>.</button><button>C</button><button>+</button>
-            </div>
-            <div class="actionRow"><button class="btn" id="btnCalcEqual" type="button">=</button><button class="btn primary" id="btnUseCalc" type="button">Usar en monto</button></div>
-            <div class="calcResult" id="calcResult">Resultado: —</div>
-          </section>
-        </div>
-
-        <section class="panel">
-          <div class="panelHead"><div><h3>Resumen ejecutivo</h3><p>Periodo y lectura financiera rápida.</p></div><span class="statusTag" id="dashPill">Listo</span></div>
-          <div class="periodBar"><label>Desde<input class="input" id="pFrom" type="date" /></label><label>Hasta<input class="input" id="pTo" type="date" /></label></div>
-          <div class="dashGrid" id="dashGrid"></div>
-        </section>
-      </section>
-
-      <section class="view" id="view-transactions">
-        <section class="panel">
-          <div class="panelHead"><div><h3>Movimiento</h3><p>Formulario completo para editar sin brincar de sistema.</p></div></div>
-          <div class="formGrid extended">
-            <label>Tipo<select class="input" id="txType"><option value="INCOME">Ingreso</option><option value="EXPENSE">Gasto</option></select></label>
-            <label>Monto<input class="input" id="txAmountMirror" type="number" step="0.01" placeholder="0.00" /></label>
-            <label>Fecha<input class="input" id="txDateMirror" type="date" /></label>
-            <label>Categoría<select class="input" id="txCategoryMirror"></select></label>
-            <label>Método<select class="input" id="txMethodMirror"><option value="EFECTIVO">Efectivo</option><option value="ATH">ATH / ATH Móvil</option><option value="TARJETA">Tarjeta</option><option value="TRANSFERENCIA">Transferencia</option><option value="CHEQUE">Cheque</option><option value="OTRO">Otro</option></select></label>
-            <label>Estado<select class="input" id="txStatusMirror"><option value="PAGADO">Pagado</option><option value="PENDIENTE">Pendiente</option></select></label>
-            <label>Cliente / Proveedor<input class="input" id="txPartyMirror" /></label>
-            <label>Referencia<input class="input" id="txRefMirror" /></label>
-            <label>Tags<input class="input" id="txTagsMirror" placeholder="mantenimiento, emergencia" /></label>
-            <label class="wide">Notas<textarea class="input" id="txNotesMirror" rows="3"></textarea></label>
-            <label class="wide">Recibo<input class="input" id="txReceiptMirror" type="file" /></label>
+    <section class="view is-active" id="view-dashboard">
+      <div class="gridMain">
+        <section class="card panel">
+          <div class="panelHead">
+            <div><h2>Resumen ejecutivo</h2><p>Lectura rápida para tomar decisiones.</p></div>
+            <div class="dateRange"><input id="pFrom" type="date" /><input id="pTo" type="date" /></div>
           </div>
-          <div class="receiptBox"><div id="receiptMeta">Sin recibo</div><img id="receiptImg" alt="Recibo" /></div>
-          <div class="actionRow"><button class="btn primary" id="btnSaveMirror" type="button">Guardar cambios</button></div>
+          <div class="insightGrid" id="dashGrid"></div>
         </section>
-      </section>
 
-      <section class="view" id="view-history">
-        <section class="panel">
-          <div class="panelHead"><div><h3>Historial</h3><p>Busca, abre y controla rápido.</p></div></div>
-          <div class="filters"><input class="input" id="fText" placeholder="Buscar" /><select class="input" id="fType"><option value="">Tipo</option><option value="INCOME">Ingreso</option><option value="EXPENSE">Gasto</option></select><select class="input" id="fStatus"><option value="">Estado</option><option value="PAGADO">Pagado</option><option value="PENDIENTE">Pendiente</option></select><select class="input" id="fCategory"></select><select class="input" id="fMethod"><option value="">Método</option><option value="EFECTIVO">Efectivo</option><option value="ATH">ATH</option><option value="TARJETA">Tarjeta</option><option value="TRANSFERENCIA">Transferencia</option><option value="CHEQUE">Cheque</option><option value="OTRO">Otro</option></select><input class="input" id="fFrom" type="date" /><input class="input" id="fTo" type="date" /><button class="btn ghost" id="btnClearFilters" type="button">Limpiar</button></div>
-          <div class="tableWrap"><table><thead><tr><th>Fecha</th><th>Tipo</th><th>Categoría</th><th>Método</th><th>Nombre</th><th>Estado</th><th>Monto</th><th></th></tr></thead><tbody id="txBody"></tbody></table></div>
-        </section>
-      </section>
-
-      <section class="view" id="view-settings">
-        <section class="panel">
-          <div class="panelHead"><div><h3>Ajustes mínimos</h3><p>Solo lo necesario: categorías, recurrentes y backup.</p></div></div>
-          <div class="settingsGrid">
-            <div class="miniBox"><h4>Categorías</h4><div class="formGrid"><input class="input" id="catName" placeholder="Nombre" /><select class="input" id="catType"><option value="EXPENSE">Gasto</option><option value="INCOME">Ingreso</option><option value="BOTH">Ambos</option></select><input class="input" id="catColor" type="color" value="#38bdf8" /></div><div class="actionRow"><button class="btn" id="btnAddCat" type="button">Guardar</button><button class="btn ghost" id="btnSeedCats" type="button">Plantilla CRM</button><button class="btn danger" id="btnClearCats" type="button">Vaciar</button></div><div class="compactList" id="catBody"></div></div>
-            <div class="miniBox"><h4>Recurrentes</h4><div class="formGrid"><select class="input" id="rType"><option value="EXPENSE">Gasto</option><option value="INCOME">Ingreso</option></select><select class="input" id="rCategory"></select><input class="input" id="rAmount" type="number" placeholder="Monto" /><input class="input" id="rDay" type="number" min="1" max="28" value="1" /><input class="input" id="rParty" placeholder="Cliente / proveedor" /><input class="input" id="rMemo" placeholder="Nota" /></div><div class="actionRow"><button class="btn" id="btnAddRecurring" type="button">Guardar</button><button class="btn ghost" id="btnRunRecurring" type="button">Generar mes</button><button class="btn danger" id="btnClearRecurring" type="button">Vaciar</button></div><div class="compactList" id="recBody"></div></div>
-            <div class="miniBox"><h4>Datos</h4><p class="muted">Sync vivo cuando estás conectado. Backup manual para control total.</p><div class="actionRow"><button class="btn ghost" id="btnImport" type="button">Importar</button><input id="importFile" type="file" accept="application/json" hidden /><button class="btn danger" id="btnReset" type="button">Reset</button></div></div>
+        <section class="card panel compact">
+          <div class="panelHead"><div><h2>Caja rápida</h2><p>Entrada sin vueltas.</p></div></div>
+          <div class="quickStack">
+            <button class="quickTile income" id="tileIncome" type="button">Registrar ingreso</button>
+            <button class="quickTile expense" id="tileExpense" type="button">Registrar gasto</button>
+            <button class="quickTile split" id="tileSplit" type="button">Dividir gasto</button>
+            <button class="quickTile backup" id="tileBackup" type="button">Backup ahora</button>
           </div>
         </section>
+      </div>
+    </section>
+
+    <section class="view" id="view-entry">
+      <section class="card panel">
+        <div class="panelHead">
+          <div><h2 id="txMode">Nueva transacción</h2><p>Formulario reducido: lo necesario, nada de novela.</p></div>
+          <span class="statusChip" id="entryChip">Nuevo</span>
+        </div>
+
+        <div class="entryGrid">
+          <div class="segmented" role="group">
+            <button class="segBtn is-active" id="segIncome" type="button">Ingreso</button>
+            <button class="segBtn" id="segExpense" type="button">Gasto</button>
+          </div>
+          <label>Monto<input class="input big" id="txAmount" type="number" step="0.01" placeholder="0.00" /></label>
+          <label>Fecha<input class="input" id="txDate" type="date" /></label>
+          <label>Categoría<select class="input" id="txCategory"></select></label>
+          <label>Método<select class="input" id="txMethod"><option value="EFECTIVO">Efectivo</option><option value="ATH">ATH / ATH Móvil</option><option value="TARJETA">Tarjeta</option><option value="TRANSFERENCIA">Transferencia</option><option value="CHEQUE">Cheque</option><option value="OTRO">Otro</option></select></label>
+          <label>Estado<select class="input" id="txStatus"><option value="PAGADO">Pagado</option><option value="PENDIENTE">Pendiente</option></select></label>
+          <label>Cliente / Proveedor<input class="input" id="txParty" placeholder="Nombre" /></label>
+          <label>Referencia<input class="input" id="txRef" placeholder="Factura / recibo" /></label>
+          <label class="wide">Nota<input class="input" id="txNotes" placeholder="Detalle corto" /></label>
+          <label>Recibo<input class="input" id="txReceipt" type="file" accept="image/*,.pdf" /></label>
+        </div>
+
+        <div class="receiptPreview" id="receiptPreview">Sin recibo</div>
+        <div class="rowBtns right">
+          <button class="btn ghost" id="btnResetTx" type="button">Limpiar</button>
+          <button class="btn ghost" id="btnDuplicate" type="button">Duplicar</button>
+          <button class="btn dangerSoft" id="btnDeleteTx" type="button">Borrar</button>
+          <button class="btn primary" id="btnSaveTx" type="button">Guardar</button>
+        </div>
       </section>
-    </main>
+    </section>
+
+    <section class="view" id="view-history">
+      <section class="card panel">
+        <div class="panelHead"><div><h2>Historial</h2><p>Busca, filtra y abre transacciones.</p></div></div>
+        <div class="filters">
+          <input class="input" id="fText" placeholder="Buscar" />
+          <select class="input" id="fType"><option value="">Tipo</option><option value="INCOME">Ingresos</option><option value="EXPENSE">Gastos</option></select>
+          <select class="input" id="fStatus"><option value="">Estado</option><option value="PAGADO">Pagado</option><option value="PENDIENTE">Pendiente</option></select>
+          <select class="input" id="fCategory"></select>
+          <input class="input" id="fFrom" type="date" />
+          <input class="input" id="fTo" type="date" />
+          <button class="btn ghost" id="btnClearFilters" type="button">Limpiar</button>
+        </div>
+        <div class="list" id="txList"></div>
+      </section>
+    </section>
+
+    <section class="view" id="view-setup">
+      <div class="gridMain">
+        <section class="card panel">
+          <div class="panelHead"><div><h2>Configuración Nexus</h2><p>Marca, logo, sync, categorías y backup.</p></div></div>
+          <div class="entryGrid">
+            <label>Nombre de app<input class="input" id="setAppName" /></label>
+            <label>Subtítulo<input class="input" id="setSubName" /></label>
+            <label>Logo Nexus<input class="input" id="setLogo" type="file" accept="image/*" /></label>
+            <label>Hub URL<input class="input" id="setHub" /></label>
+          </div>
+          <div class="rowBtns">
+            <button class="btn primary" id="btnSaveSettings" type="button">Guardar configuración</button>
+            <button class="btn ghost" id="btnDefaultLogo" type="button">Logo Nexus default</button>
+          </div>
+        </section>
+
+        <section class="card panel">
+          <div class="panelHead"><div><h2>Categorías</h2><p>Plantilla estilo trabajo real.</p></div></div>
+          <div class="entryGrid compactForm">
+            <label>Nombre<input class="input" id="catName" placeholder="Combustible" /></label>
+            <label>Tipo<select class="input" id="catType"><option value="EXPENSE">Gasto</option><option value="INCOME">Ingreso</option><option value="BOTH">Ambos</option></select></label>
+            <label>Color<input class="input" id="catColor" type="color" value="#25c7ff" /></label>
+          </div>
+          <div class="rowBtns"><button class="btn primary" id="btnAddCat" type="button">Añadir</button><button class="btn ghost" id="btnSeedCats" type="button">Plantilla Oasis</button></div>
+          <div class="chips" id="catChips"></div>
+        </section>
+
+        <section class="card panel">
+          <div class="panelHead"><div><h2>Data</h2><p>Backup manual, importación y reset.</p></div></div>
+          <div class="rowBtns">
+            <button class="btn primary" id="btnExport" type="button">Exportar backup</button>
+            <button class="btn ghost" id="btnImport" type="button">Importar</button>
+            <input id="importFile" type="file" accept="application/json" hidden />
+            <button class="btn dangerSoft" id="btnReset" type="button">Reset total</button>
+          </div>
+        </section>
+      </div>
+    </section>
+  </main>
+
+  <div class="calcDrawer" id="calcDrawer" aria-hidden="true">
+    <div class="calcBox card">
+      <div class="panelHead"><div><h2>Calculadora Nexus</h2><p>Sumar, restar, dividir y enviar al monto.</p></div><button class="btn ghost small" id="btnCloseCalc" type="button">Cerrar</button></div>
+      <input class="calcDisplay" id="calcDisplay" value="" placeholder="0" readonly />
+      <div class="calcKeys" id="calcKeys"></div>
+      <div class="rowBtns right"><button class="btn primary" id="btnUseCalc" type="button">Usar como monto</button></div>
+    </div>
   </div>
 
   <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
