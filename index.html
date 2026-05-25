@@ -48,9 +48,8 @@
 
     <section class="hero card">
       <div>
-        <div class="eyebrow">Control financiero operativo</div>
-        <h1 id="heroTitle">Gastos, ingresos y caja bajo control.</h1>
-        <p id="heroSub">Menos clics. Más control. Sync vivo cuando estás conectado.</p>
+        <h1 id="heroTitle">Nexus Finance</h1>
+        <p id="heroSub"></p>
       </div>
       <div class="heroActions">
         <button class="btn primary" id="btnNewIncome" type="button">+ Ingreso</button>
@@ -139,24 +138,37 @@
 
 
     <section class="view" id="view-reports">
-      <section class="card panel">
-        <div class="panelHead">
-          <div><h2>Reporte semanal</h2><p>Resumen financiero operativo por semana.</p></div>
-          <div class="rowBtns">
+      <section class="reportCanvas">
+        <div class="reportTop">
+          <div class="reportLogoText">NEXUS <span>FINANCE</span></div>
+          <div class="reportTools">
+            <div class="reportDate"><input id="wFrom" type="date" /><span>—</span><input id="wTo" type="date" /></div>
             <button class="btn primary" id="btnWeeklyPdf" type="button">Exportar PDF</button>
           </div>
         </div>
-
-        <div class="entryGrid compactForm">
-          <label>Desde<input class="input" id="wFrom" type="date" /></label>
-          <label>Hasta<input class="input" id="wTo" type="date" /></label>
-          <label>Observaciones<input class="input" id="wNotes" placeholder="Notas internas del periodo" /></label>
+        <div class="reportDivider"></div>
+        <div class="reportHeaderClean">
+          <h2>Reporte Semanal</h2>
+          <p>Resumen financiero operativo por semana.</p>
         </div>
-
-        <div class="reportKpis" id="weeklyKpis"></div>
-        <div class="reportGrid">
-          <div class="reportBox"><h3>Ingresos por categoría</h3><div id="weeklyIncomeCats"></div></div>
-          <div class="reportBox"><h3>Gastos por categoría</h3><div id="weeklyExpenseCats"></div></div>
+        <div class="reportKpis clean" id="weeklyKpis"></div>
+        <div class="reportGrid clean">
+          <div class="reportBox clean"><h3>Ingresos por Categoría</h3><div id="weeklyIncomeCats"></div></div>
+          <div class="reportBox clean"><h3>Gastos por Categoría</h3><div id="weeklyExpenseCats"></div></div>
+        </div>
+        <div class="reportBox clean txClean">
+          <h3>Detalle de Transacciones</h3>
+          <div class="reportTableWrap">
+            <table class="reportTable">
+              <thead><tr><th>Fecha</th><th>Tipo</th><th>Categoría</th><th>Detalle</th><th>Monto</th><th>Estado</th></tr></thead>
+              <tbody id="weeklyTxBody"></tbody>
+            </table>
+          </div>
+          <div class="reportTotals"><strong>Total Transacciones: <span id="weeklyTxTotal">0</span></strong><strong>Total Monto: <span id="weeklyTxAmount">$0.00</span></strong></div>
+        </div>
+        <div class="reportNotes">
+          <strong>Notas internas del reporte</strong>
+          <input id="wNotes" placeholder="Sin notas para este periodo." />
         </div>
       </section>
     </section>
