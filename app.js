@@ -191,12 +191,12 @@ function generateWeeklyPDF(){
   const left=12, pageW=216;
   doc.setFillColor(255,255,255); doc.rect(0,0,216,279,'F');
   try{if(s.logo)doc.addImage(s.logo,'PNG',left,6,24,16)}catch{}
-  doc.setTextColor(12,20,32); doc.setFont('helvetica','bold'); doc.setFontSize(18); pdfText(doc,(s.appName||'Nexus Finance').toUpperCase(),left,20);
+  doc.setTextColor(12,20,32); doc.setFont('helvetica','bold'); doc.setFontSize(18); pdfText(doc,'NEXUS FINANCE',left,20);
   doc.setDrawColor(210,214,220); doc.line(left,28,pageW-left,28);
   doc.setFontSize(8); doc.setFont('helvetica','normal'); pdfText(doc,`${from||'—'} - ${to||'—'}`,pageW-left,16,{align:'right'});
   doc.setFont('helvetica','bold'); doc.setFontSize(16); pdfText(doc,'Reporte Semanal',left,38);
   doc.setFont('helvetica','normal'); doc.setFontSize(9); doc.setTextColor(47,59,76); pdfText(doc,'Resumen financiero operativo por semana.',left,45);
-  const cards=[['↑','Ingresos Brutos',fmt(income),'Total ingresos','green'],['↓','Gastos Operacionales',fmt(expense),'Total gastos','red'],['▣','Balance Neto',fmt(net),'Ingresos - Gastos','blue'],['▥','Margen Neto',margin,'Porcentaje','purple'],['●','Labor (Ingreso)',fmt(labor),'Total labor','orange'],['◇','Servicios Prestados (Gasto)',fmt(services),'Total servicios prestados','teal'],['□','Pendientes por Cobrar/Pagar',fmt(pending),'Total pendientes','yellow'],['☷','Transacciones',String(tx.length),'Total transacciones','gray']];
+  const cards=[['IN','Ingresos Brutos',fmt(income),'Total ingresos','green'],['GO','Gastos Operacionales',fmt(expense),'Total gastos','red'],['BN','Balance Neto',fmt(net),'Ingresos - Gastos','blue'],['MN','Margen Neto',margin,'Porcentaje','purple'],['LB','Labor (Ingreso)',fmt(labor),'Total labor','orange'],['SP','Servicios Prestados (Gasto)',fmt(services),'Total servicios prestados','teal'],['PD','Pendientes por Cobrar/Pagar',fmt(pending),'Total pendientes','yellow'],['#','Transacciones',String(tx.length),'Total transacciones','gray']];
   let y=52; const cw=48, ch=23, gap=5;
   cards.forEach((c,i)=>drawMoneyCard(doc,c[0],c[1],c[2],c[3],c[4],left+(cw+gap)*(i%4),y+(ch+6)*Math.floor(i/4),cw,ch));
   y+=58;
