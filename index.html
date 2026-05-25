@@ -21,6 +21,7 @@
       <button class="navBtn is-active" data-view="dashboard" type="button">Dashboard</button>
       <button class="navBtn" data-view="entry" type="button">Entrada rápida</button>
       <button class="navBtn" data-view="history" type="button">Historial</button>
+      <button class="navBtn" data-view="reports" type="button">Reportes</button>
       <button class="navBtn" data-view="setup" type="button">Configuración</button>
     </nav>
 
@@ -136,6 +137,30 @@
       </section>
     </section>
 
+
+    <section class="view" id="view-reports">
+      <section class="card panel">
+        <div class="panelHead">
+          <div><h2>Reporte semanal</h2><p>Resumen financiero operativo por semana.</p></div>
+          <div class="rowBtns">
+            <button class="btn primary" id="btnWeeklyPdf" type="button">Exportar PDF</button>
+          </div>
+        </div>
+
+        <div class="entryGrid compactForm">
+          <label>Desde<input class="input" id="wFrom" type="date" /></label>
+          <label>Hasta<input class="input" id="wTo" type="date" /></label>
+          <label>Observaciones<input class="input" id="wNotes" placeholder="Notas internas del periodo" /></label>
+        </div>
+
+        <div class="reportKpis" id="weeklyKpis"></div>
+        <div class="reportGrid">
+          <div class="reportBox"><h3>Ingresos por categoría</h3><div id="weeklyIncomeCats"></div></div>
+          <div class="reportBox"><h3>Gastos por categoría</h3><div id="weeklyExpenseCats"></div></div>
+        </div>
+      </section>
+    </section>
+
     <section class="view" id="view-setup">
       <div class="gridMain">
         <section class="card panel">
@@ -188,6 +213,7 @@
   <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore-compat.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script src="app.js"></script>
 </body>
 </html>
