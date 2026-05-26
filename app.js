@@ -21,6 +21,15 @@ function blankDB(){return {settings:{appName:"Nexus Finance",subName:"",hubUrl:"
 function loadDB(){try{return {...blankDB(),...JSON.parse(localStorage.getItem(KEY)||"{}")}}catch{return blankDB()}}
 function saveDB(db){db.meta=db.meta||{};db.meta.updatedAt=new Date().toISOString();localStorage.setItem(KEY,JSON.stringify(db));scheduleCloudPush();}
 function setLocalOnly(db){localStorage.setItem(KEY,JSON.stringify(db));}
+function hasTransactions(db){return Array.isArray(db?.tx)&&db.tx.length>0}
+function hasCategories(db){return Array.isArray(db?.cats)&&db.cats.length>0}
+function pullCloudDB(cloud){
+  cloudApplying=true;
+  setLocalOnly({...blankDB(),...cloud,meta:{...(blankDB().meta||{}),...(cloud.meta||{})}});
+  cloudApplying=false;
+  renderAll();
+  setCloud(true,"Sync vivo");
+}
 function timeMs(v){const n=Date.parse(v||"");return Number.isFinite(n)?n:0;}
 function ref(){return fbDb.collection("users").doc(fbUser.uid).collection("apps").doc("nexus_finance_live");}
 function assertOwner(u){if(!u)throw new Error("No hay sesión"); if(String(u.email||"").toLowerCase()!==OWNER_EMAIL)throw new Error("Cuenta no autorizada");}
@@ -52,24 +61,47 @@ function wireAuth(){
 
       unsub=ref().onSnapshot(s=>{
         const local=loadDB();
+
+        // Si todavía no existe documento cloud, solo sube si el equipo local tiene transacciones reales.
+        // Las categorías sembradas por defecto NO deben borrar una base cloud al abrir desde otro equipo.
         if(!s.exists){
-          if((local.tx||[]).length||(local.cats||[]).length) scheduleCloudPush();
+          if(hasTransactions(local)) scheduleCloudPush();
+          else setCloud(true,"Cloud listo");
           return;
         }
+
         const data=s.data()||{};
         const cloud=data.db;
         if(!cloud)return;
+
+        const localHasTx=hasTransactions(local);
+        const cloudHasTx=hasTransactions(cloud);
         const cTime=timeMs(cloud.meta?.updatedAt||data.updatedAt);
         const lTime=timeMs(local.meta?.updatedAt);
 
-        if(cTime>lTime+250){
-          cloudApplying=true;
-          setLocalOnly({...blankDB(),...cloud,meta:{...(blankDB().meta||{}),...(cloud.meta||{})}});
-          cloudApplying=false;
-          renderAll();
-          setCloud(true,"Sync vivo");
-        }else if(lTime>cTime+250){
+        // Regla crítica: dispositivo nuevo o vacío SIEMPRE trae la nube. Nunca empuja categorías vacías encima.
+        if(cloudHasTx && !localHasTx){
+          pullCloudDB(cloud);
+          return;
+        }
+
+        // Si ambos tienen data real, gana el más reciente.
+        if(cloudHasTx && localHasTx){
+          if(cTime>lTime+250) pullCloudDB(cloud);
+          else if(lTime>cTime+250) scheduleCloudPush();
+          else setCloud(true,"Sync vivo");
+          return;
+        }
+
+        // Si local tiene transacciones y cloud no, entonces sí sube local.
+        if(localHasTx && !cloudHasTx){
           scheduleCloudPush();
+          return;
+        }
+
+        // Sin transacciones en ambos: si la nube tiene categorías/configuración, tráelas; si no, queda local.
+        if(hasCategories(cloud) && (!hasCategories(local) || cTime>=lTime)){
+          pullCloudDB(cloud);
         }else{
           setCloud(true,"Sync vivo");
         }
@@ -264,6 +296,6 @@ function setDefaultWeek(){if(!$('wFrom'))return; const d=new Date(); const day=(
 
 function renderAll(){applyBrand();renderCats();renderDashboard();renderHistory();renderWeeklyReport();}
 function calculator(){const keys=['7','8','9','÷','4','5','6','×','1','2','3','-','0','.','C','+','(',')','⌫','=']; const box=$("calcKeys"); box.innerHTML=keys.map(k=>`<button class="${'+-×÷='.includes(k)?'op':''} ${k==='='?'eq':''}" data-k="${k}">${k}</button>`).join(''); box.onclick=e=>{const b=e.target.closest('button'); if(!b)return; let k=b.dataset.k,d=$("calcDisplay"); if(k==='C')d.value=''; else if(k==='⌫')d.value=d.value.slice(0,-1); else if(k==='='){try{d.value=String(Function(`return (${d.value.replaceAll('×','*').replaceAll('÷','/')})`)())}catch{d.value='Error'}} else d.value+=k;};}
-function wire(){if($('btnWeeklyPdf'))$('btnWeeklyPdf').onclick=generateWeeklyPDF; ['wFrom','wTo','wNotes'].forEach(id=>{const el=$(id); if(el)el.addEventListener('input',renderWeeklyReport)}); document.querySelectorAll('.navBtn').forEach(b=>b.onclick=()=>setView(b.dataset.view)); ["btnQuickOpen","btnNewIncome","tileIncome"].forEach(id=>$(id).onclick=()=>{resetTx('INCOME');setView('entry')}); ["btnNewExpense","tileExpense"].forEach(id=>$(id).onclick=()=>{resetTx('EXPENSE');setView('entry')}); $("tileSplit").onclick=()=>{resetTx('EXPENSE');setView('entry');$("txNotes").value='Gasto dividido entre ___ partes';openCalc()}; $("segIncome").onclick=()=>setTxType('INCOME'); $("segExpense").onclick=()=>setTxType('EXPENSE'); $("btnSaveTx").onclick=saveTx; $("btnResetTx").onclick=()=>resetTx(); $("btnDuplicate").onclick=duplicateTx; $("btnDeleteTx").onclick=deleteTx; $("btnSeedCats").onclick=seedCats; $("btnAddCat").onclick=()=>{const db=loadDB(),name=$("catName").value.trim(); if(!name)return; db.cats.push({id:uid('cat'),name,type:$("catType").value,color:$("catColor").value}); saveDB(db); $("catName").value=''; renderAll()}; $("btnSaveSettings").onclick=async()=>{const db=loadDB(); db.settings.appName=$("setAppName").value.trim()||'Nexus Finance'; db.settings.subName=$("setSubName").value.trim()||''; db.settings.hubUrl=$("setHub").value.trim()||'#'; const f=$("setLogo").files?.[0]; if(f)db.settings.logo=await readFile(f); saveDB(db); renderAll();}; $("btnDefaultLogo").onclick=()=>{const db=loadDB();db.settings.logo=defaultLogo;saveDB(db);renderAll()}; ["btnExport","tileBackup","backupCard"].forEach(id=>$(id).onclick=exportJSON); $("btnImport").onclick=()=>$("importFile").click(); $("importFile").onchange=e=>{const f=e.target.files?.[0]; if(f)importJSON(f); e.target.value=''}; $("btnReset").onclick=()=>{if(confirm('Reset total. ¿Seguro?')){setLocalOnly(blankDB());renderAll();scheduleCloudPush()}}; ["fText","fType","fStatus","fCategory","fFrom","fTo"].forEach(id=>$(id).addEventListener('input',renderHistory)); $("btnClearFilters").onclick=()=>{["fText","fType","fStatus","fCategory","fFrom","fTo"].forEach(id=>$(id).value='');renderHistory()}; ["pFrom","pTo"].forEach(id=>$(id).addEventListener('change',renderDashboard)); $("txReceipt").onchange=()=>{$("receiptPreview").textContent=$("txReceipt").files?.[0]?.name||'Sin recibo'}; calculator(); $("btnCalc").onclick=openCalc; $("btnCloseCalc").onclick=closeCalc; $("btnUseCalc").onclick=()=>{const v=Number($("calcDisplay").value); if(!isNaN(v))$("txAmount").value=v.toFixed(2); closeCalc()};}
+function wire(){if($('btnWeeklyPdf'))$('btnWeeklyPdf').onclick=generateWeeklyPDF; ['wFrom','wTo','wNotes'].forEach(id=>{const el=$(id); if(el)el.addEventListener('input',renderWeeklyReport)}); document.querySelectorAll('.navBtn').forEach(b=>b.onclick=()=>setView(b.dataset.view)); ["btnQuickOpen","btnNewIncome","tileIncome"].forEach(id=>$(id).onclick=()=>{resetTx('INCOME');setView('entry')}); ["btnNewExpense","tileExpense"].forEach(id=>$(id).onclick=()=>{resetTx('EXPENSE');setView('entry')}); $("tileSplit").onclick=()=>{resetTx('EXPENSE');setView('entry');$("txNotes").value='Gasto dividido entre ___ partes';openCalc()}; $("segIncome").onclick=()=>setTxType('INCOME'); $("segExpense").onclick=()=>setTxType('EXPENSE'); $("btnSaveTx").onclick=saveTx; $("btnResetTx").onclick=()=>resetTx(); $("btnDuplicate").onclick=duplicateTx; $("btnDeleteTx").onclick=deleteTx; $("btnSeedCats").onclick=seedCats; $("btnAddCat").onclick=()=>{const db=loadDB(),name=$("catName").value.trim(); if(!name)return; db.cats.push({id:uid('cat'),name,type:$("catType").value,color:$("catColor").value}); saveDB(db); $("catName").value=''; renderAll()}; $("btnSaveSettings").onclick=async()=>{const db=loadDB(); db.settings.appName=$("setAppName").value.trim()||'Nexus Finance'; db.settings.subName=$("setSubName").value.trim()||''; db.settings.hubUrl=$("setHub").value.trim()||'#'; const f=$("setLogo").files?.[0]; if(f)db.settings.logo=await readFile(f); saveDB(db); renderAll();}; $("btnDefaultLogo").onclick=()=>{const db=loadDB();db.settings.logo=defaultLogo;saveDB(db);renderAll()}; ["btnExport","tileBackup","backupCard"].forEach(id=>$(id).onclick=exportJSON); $("btnImport").onclick=()=>$("importFile").click(); $("importFile").onchange=e=>{const f=e.target.files?.[0]; if(f)importJSON(f); e.target.value=''}; $("btnReset").onclick=()=>{if(confirm('Reset local. La nube no se borra. ¿Seguro?')){setLocalOnly(blankDB());renderAll();setCloud(!!fbUser,fbUser?'Local limpio':'Offline')}}; ["fText","fType","fStatus","fCategory","fFrom","fTo"].forEach(id=>$(id).addEventListener('input',renderHistory)); $("btnClearFilters").onclick=()=>{["fText","fType","fStatus","fCategory","fFrom","fTo"].forEach(id=>$(id).value='');renderHistory()}; ["pFrom","pTo"].forEach(id=>$(id).addEventListener('change',renderDashboard)); $("txReceipt").onchange=()=>{$("receiptPreview").textContent=$("txReceipt").files?.[0]?.name||'Sin recibo'}; calculator(); $("btnCalc").onclick=openCalc; $("btnCloseCalc").onclick=closeCalc; $("btnUseCalc").onclick=()=>{const v=Number($("calcDisplay").value); if(!isNaN(v))$("txAmount").value=v.toFixed(2); closeCalc()};}
 function openCalc(){$("calcDrawer").classList.add('open');$("calcDisplay").focus()} function closeCalc(){$("calcDrawer").classList.remove('open')}
-(function boot(){setDefaultWeek(); const now=new Date(),first=new Date(now.getFullYear(),now.getMonth(),1).toISOString().slice(0,10),last=new Date(now.getFullYear(),now.getMonth()+1,0).toISOString().slice(0,10); ["pFrom","fFrom"].forEach(id=>$(id).value=first); ["pTo","fTo"].forEach(id=>$(id).value=last); wire(); if(!loadDB().cats.length)seedCats(); resetTx(); renderAll(); initFirebase(); wireAuth();})();
+(function boot(){setDefaultWeek(); const now=new Date(),first=new Date(now.getFullYear(),now.getMonth(),1).toISOString().slice(0,10),last=new Date(now.getFullYear(),now.getMonth()+1,0).toISOString().slice(0,10); ["pFrom","fFrom"].forEach(id=>$(id).value=first); ["pTo","fTo"].forEach(id=>$(id).value=last); wire(); if(!loadDB().cats.length && !localStorage.getItem(KEY))seedCats(); resetTx(); renderAll(); initFirebase(); wireAuth();})();
