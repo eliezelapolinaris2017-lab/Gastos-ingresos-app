@@ -21,15 +21,62 @@ function blankDB(){return {settings:{appName:"Nexus Finance",subName:"",hubUrl:"
 function loadDB(){try{return {...blankDB(),...JSON.parse(localStorage.getItem(KEY)||"{}")}}catch{return blankDB()}}
 function saveDB(db){db.meta=db.meta||{};db.meta.updatedAt=new Date().toISOString();localStorage.setItem(KEY,JSON.stringify(db));scheduleCloudPush();}
 function setLocalOnly(db){localStorage.setItem(KEY,JSON.stringify(db));}
+function timeMs(v){const n=Date.parse(v||"");return Number.isFinite(n)?n:0;}
 function ref(){return fbDb.collection("users").doc(fbUser.uid).collection("apps").doc("nexus_finance_live");}
 function assertOwner(u){if(!u)throw new Error("No hay sesión"); if(String(u.email||"").toLowerCase()!==OWNER_EMAIL)throw new Error("Cuenta no autorizada");}
 function initFirebase(){try{if(!window.firebase)return; try{fbApp=firebase.app(FIREBASE_APP_NAME)}catch{fbApp=firebase.initializeApp(firebaseConfig,FIREBASE_APP_NAME)} fbAuth=firebase.auth(fbApp); fbDb=firebase.firestore(fbApp);}catch(e){console.warn(e)}}
 function setCloud(on,msg){$("cloudDot").classList.toggle("on",!!on); $("authPill").textContent=on?"Cloud activo":"Offline"; $("syncPill").textContent=msg|| (on?"Sync vivo":"Sync local");}
-async function cloudPush(){if(!fbUser||!fbDb||cloudApplying)return; const db=loadDB(); await ref().set({db,updatedAt:new Date().toISOString(),ownerEmail:OWNER_EMAIL},{merge:true}); setCloud(true,"Guardado en cloud");}
-function scheduleCloudPush(){if(!fbUser||!fbDb||cloudApplying)return; clearTimeout(saveTimer); setCloud(true,"Sincronizando…"); saveTimer=setTimeout(()=>cloudPush().catch(e=>{console.warn(e);setCloud(true,"Sync pendiente")}),650)}
+async function cloudPush(){if(!fbUser||!fbDb||cloudApplying)return; const db=loadDB(); db.meta=db.meta||{}; if(!db.meta.updatedAt)db.meta.updatedAt=new Date().toISOString(); setLocalOnly(db); await ref().set({db,updatedAt:db.meta.updatedAt,ownerEmail:OWNER_EMAIL},{merge:true}); setCloud(true,"Guardado");}
+function scheduleCloudPush(){if(!fbUser||!fbDb||cloudApplying)return; clearTimeout(saveTimer); setCloud(true,"Sincronizando…"); saveTimer=setTimeout(()=>cloudPush().catch(e=>{console.warn(e);setCloud(true,"Pendiente")}),650)}
 async function loginGoogle(){if(!fbAuth)return alert("Firebase no está listo."); try{const p=new firebase.auth.GoogleAuthProvider(); const r=await fbAuth.signInWithPopup(p); assertOwner(r.user);}catch(e){alert("Login cancelado o cuenta no autorizada."); try{await fbAuth.signOut()}catch{}}}
 async function logout(){try{if(unsub)unsub(); await fbAuth.signOut()}catch{}}
-function wireAuth(){if(!fbAuth){setCloud(false);return} $("btnLogin").onclick=loginGoogle; $("btnLogout").onclick=logout; fbAuth.onAuthStateChanged(async u=>{if(!u){fbUser=null; if(unsub)unsub(); $("btnLogin").hidden=false; $("btnLogout").hidden=true; setCloud(false); return} try{assertOwner(u); fbUser=u; $("btnLogin").hidden=true; $("btnLogout").hidden=false; setCloud(true,"Conectando sync vivo"); unsub=ref().onSnapshot(s=>{if(!s.exists){cloudPush();return} const cloud=s.data().db; if(!cloud)return; const local=loadDB(); const cTime=cloud.meta?.updatedAt||s.data().updatedAt||""; const lTime=local.meta?.updatedAt||""; if(cTime && cTime!==lTime){cloudApplying=true; setLocalOnly({...blankDB(),...cloud}); cloudApplying=false; renderAll(); setCloud(true,"Sync vivo");}},e=>{console.warn(e);setCloud(true,"Sync limitado")}); await cloudPush();}catch(e){alert(e.message); logout();}})}
+function wireAuth(){
+  if(!fbAuth){setCloud(false);return}
+  $("btnLogin").onclick=loginGoogle;
+  $("btnLogout").onclick=logout;
+  fbAuth.onAuthStateChanged(async u=>{
+    if(!u){
+      fbUser=null;
+      if(unsub){unsub();unsub=null;}
+      $("btnLogin").hidden=false;
+      $("btnLogout").hidden=true;
+      setCloud(false);
+      return;
+    }
+    try{
+      assertOwner(u);
+      fbUser=u;
+      $("btnLogin").hidden=true;
+      $("btnLogout").hidden=false;
+      setCloud(true,"Sync vivo");
+
+      unsub=ref().onSnapshot(s=>{
+        const local=loadDB();
+        if(!s.exists){
+          if((local.tx||[]).length||(local.cats||[]).length) scheduleCloudPush();
+          return;
+        }
+        const data=s.data()||{};
+        const cloud=data.db;
+        if(!cloud)return;
+        const cTime=timeMs(cloud.meta?.updatedAt||data.updatedAt);
+        const lTime=timeMs(local.meta?.updatedAt);
+
+        if(cTime>lTime+250){
+          cloudApplying=true;
+          setLocalOnly({...blankDB(),...cloud,meta:{...(blankDB().meta||{}),...(cloud.meta||{})}});
+          cloudApplying=false;
+          renderAll();
+          setCloud(true,"Sync vivo");
+        }else if(lTime>cTime+250){
+          scheduleCloudPush();
+        }else{
+          setCloud(true,"Sync vivo");
+        }
+      },e=>{console.warn(e);setCloud(true,"Sync limitado")});
+    }catch(e){alert(e.message); logout();}
+  });
+}
 function readFile(file){return new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>res(String(r.result||""));r.onerror=rej;r.readAsDataURL(file)})}
 function applyBrand(){const db=loadDB(),s=db.settings||blankDB().settings; ["appLogo","appLogoMobile"].forEach(id=>$(id).src=s.logo||defaultLogo); $("brandTitle").textContent=s.appName||"Nexus Finance"; $("brandSub").textContent=s.subName||""; $("heroTitle").textContent=s.appName||"Nexus Finance"; $("heroSub").textContent=""; $("hubBtn").href=s.hubUrl||"#"; $("setAppName").value=s.appName||""; $("setSubName").value=s.subName||""; $("setHub").value=s.hubUrl||"";}
 function seedCats(){const base=[['Labor','INCOME','#21d07a'],['Ventas / Servicios','INCOME','#21d07a'],['Mantenimientos','INCOME','#25c7ff'],['Instalaciones','INCOME','#d9b76a'],['Emergencias','INCOME','#ff8a00'],['Servicios Prestados','EXPENSE','#ff5c7a'],['Materiales / Repuestos','EXPENSE','#ff5c7a'],['Combustible','EXPENSE','#ff8a00'],['Herramientas','EXPENSE','#d9b76a'],['Teléfono / Internet','EXPENSE','#25c7ff'],['Publicidad','EXPENSE','#9b7cff'],['Renta / Oficina','EXPENSE','#15e2c2']]; const db=loadDB(); const e=new Set((db.cats||[]).map(c=>c.name.toLowerCase())); base.forEach(([name,type,color])=>{if(!e.has(name.toLowerCase()))db.cats.push({id:uid('cat'),name,type,color})}); saveDB(db); renderAll();}
